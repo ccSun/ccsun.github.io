@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>Android-Performance-Tools | 叶枫很疯</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/3.0.3/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">Android-Performance-Tools</h1><a id="logo" href="/.">叶枫很疯</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">Android-Performance-Tools</h1><div class="post-meta">Mar 30, 2016<span> | </span><span class="category"><a href="/categories/Android/">Android</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><a data-thread-key="2016/03/30/android-performance-tools/" href="/2016/03/30/android-performance-tools/#comments" class="ds-thread-count"></a><div class="post-content"><p>性能优化工具介绍及使用。</p>
+<h2 id="一、-Performance-Profiling-Tools"><a href="#一、-Performance-Profiling-Tools" class="headerlink" title="一、 Performance Profiling Tools"></a>一、 Performance Profiling Tools</h2><p>Putting pixels on the screen involves four primary pieces of hardware. </p>
+<ol>
+<li>the CPU computes display lists</li>
+<li>the GPU renders images to the display</li>
+<li>the memory stores images and data</li>
+<li>the battery provides electrical power</li>
+</ol>
+<p>Each of these pieces of hardware has constraints; pushing or exceeding those constraints causes your app to be slow, have bad display performance, or exhaust the battery. </p>
+<h3 id="1-Traceview"><a href="#1-Traceview" class="headerlink" title="1. Traceview"></a>1. Traceview</h3><h3 id="2-Systrace"><a href="#2-Systrace" class="headerlink" title="2. Systrace"></a>2. Systrace</h3><h2 id="二、-Compute-Analysis-Tools"><a href="#二、-Compute-Analysis-Tools" class="headerlink" title="二、 Compute Analysis Tools"></a>二、 Compute Analysis Tools</h2><h2 id="三、-Rendering-Analysis-Tools"><a href="#三、-Rendering-Analysis-Tools" class="headerlink" title="三、 Rendering Analysis Tools"></a>三、 Rendering Analysis Tools</h2><h3 id="1-Debug-GPU-Overdraw"><a href="#1-Debug-GPU-Overdraw" class="headerlink" title="1. Debug GPU Overdraw"></a>1. Debug GPU Overdraw</h3><h5 id="1-Enable-in-Developer-Options"><a href="#1-Enable-in-Developer-Options" class="headerlink" title="1. Enable in Developer Options"></a>1. Enable in Developer Options</h5><h5 id="2-Color"><a href="#2-Color" class="headerlink" title="2. Color:"></a>2. Color:</h5><ul>
+<li>True Color: no overdraw 代码指定的实际颜色</li>
+<li>Blue: overdraw once  其实有点偏紫色</li>
+<li>Green: overdraw twice 浅绿色</li>
+<li>Pink: overdraw three times</li>
+<li>Red: overdraw four or more times</li>
+</ul>
+<h3 id="2-Profiling-GPU-Rendering"><a href="#2-Profiling-GPU-Rendering" class="headerlink" title="2. Profiling GPU Rendering"></a>2. Profiling GPU Rendering</h3><h4 id="1-Enable-in-Developer-Options-Profile-GPU-Rendering"><a href="#1-Enable-in-Developer-Options-Profile-GPU-Rendering" class="headerlink" title="1. Enable in Developer Options : Profile GPU Rendering"></a>1. Enable in Developer Options : Profile GPU Rendering</h4><h5 id="2-原理："><a href="#2-原理：" class="headerlink" title="2. 原理："></a>2. 原理：</h5><p>大多数卡顿是因为渲染性能问题。Android每16ms发送VSYNC信号对UI进行渲染，每次渲染即为一帧。如果16ms内没有绘制完，比如在20ms绘制完，则实际上用户在32ms内看到一帧，丢失一帧显示。丢帧太多，就会卡顿。所以要尽量保证所有的操作在16ms内完成。    </p>
+<h5 id="3-为什么16ms？"><a href="#3-为什么16ms？" class="headerlink" title="3. 为什么16ms？"></a>3. 为什么16ms？</h5><p>人视觉产生连续效果需要达到基本的24fps，电影一般用这个帧数。60fps是人眼能感受到的最快的变化，超过60fps是不必要的。为了达到60fps，即需要16ms绘制一帧。<br>每16ms刷新一次的刷新频率，60fps的帧频率，如果刚好匹配，则完美工作。实际上很难刚好保证同步。</p>
+<ol>
+<li>帧率超过刷新频率，即在16ms等待VSYNC刷新信号的过程中，帧数据需要等待VSYNC刷新被hold住以保持每次刷新都有数据可以显示；</li>
+<li>帧率低于刷新频率。即16ms内没有绘制完一帧，用户在32ms、48ms内看到一帧完整显示。就是卡顿了。</li>
+</ol>
+<h5 id="4-Colors"><a href="#4-Colors" class="headerlink" title="4. Colors"></a>4. Colors</h5><ol>
+<li>绿线表示16ms； 每一帧超过16ms，就意味着丢失一帧；</li>
+<li>帧的颜色从底部到顶部：<ul>
+<li>绿色：代表创建和更新view的时间；过长表示同时绘制的view过多或ondraw比较费时；</li>
+<li>紫色：4.0之上才有，传输资源到渲染线程花费的时间</li>
+<li>红色：OpenGL渲染图像花费的时间</li>
+<li>黄色：CPU等待GPU绘制结束花费的时间，如果过长，说明GPU工作很多。CPU发送cmd给GPU后，需要等过长时间才能发送新的cmd，会导致黄色很长。</li>
+</ul>
+</li>
+</ol>
+<h3 id="3-Hierarchy-Viewer"><a href="#3-Hierarchy-Viewer" class="headerlink" title="3. Hierarchy Viewer"></a>3. Hierarchy Viewer</h3><p>The Hierarchy Viewer tool visualizes your <strong><em>app’s view hierarchy</em></strong> and <strong><em>profiles the relative rendering speed for each view</em></strong>. </p>
+<ol>
+<li>但是。。不会用。我咔咔咔。下面这里也没看懂怎样就是有问题，怎样去优化<br><a href="http://developer.android.com/tools/performance/hierarchy-viewer/profiling.html" target="_blank" rel="external">http://developer.android.com/tools/performance/hierarchy-viewer/profiling.html</a></li>
+</ol>
+<h2 id="四、-Memory-Analysis-Tools"><a href="#四、-Memory-Analysis-Tools" class="headerlink" title="四、 Memory Analysis Tools"></a>四、 Memory Analysis Tools</h2><p>通过Memory Monitor观察到频繁的GC，用Heap Viewer看一下对象类型，用Allocation Tracker找到问题代码位置。</p>
+<h3 id="1-MemoryMonitor"><a href="#1-MemoryMonitor" class="headerlink" title="1. MemoryMonitor"></a>1. MemoryMonitor</h3><h5 id="1-查看内容"><a href="#1-查看内容" class="headerlink" title="1. 查看内容"></a>1. 查看内容</h5><ol>
+<li>free和allocated的内存</li>
+<li>查看GC garbage collection的频率是否正常，频繁gc导致性能问题。</li>
+<li>是否内存溢出导致crash</li>
+<li>看看是否有内存泄漏</li>
+</ol>
+<h3 id="2-Heap-Viewer"><a href="#2-Heap-Viewer" class="headerlink" title="2. Heap Viewer"></a>2. Heap Viewer</h3><p>Android Monitor和DDMS里都有。</p>
+<p>＃#### 1. 查看内容</p>
+<ol>
+<li>查看分配内存的对象，数量及占内存大小</li>
+<li>查看不必要分配的内存对象，检查内存泄漏</li>
+</ol>
+<h3 id="3-Allocation-Tracker"><a href="#3-Allocation-Tracker" class="headerlink" title="3. Allocation Tracker"></a>3. Allocation Tracker</h3><ol>
+<li>可以帮助找到问题代码的位置。</li>
+</ol>
+<h5 id="1-查看内容-1"><a href="#1-查看内容-1" class="headerlink" title="1. 查看内容"></a>1. 查看内容</h5><h3 id="4-Investigating-Your-RAM-Usage"><a href="#4-Investigating-Your-RAM-Usage" class="headerlink" title="4. Investigating Your RAM Usage"></a>4. Investigating Your RAM Usage</h3><h5 id="1-Interpreting-Dalvik-Log-Messages"><a href="#1-Interpreting-Dalvik-Log-Messages" class="headerlink" title="1. Interpreting Dalvik Log Messages"></a>1. Interpreting Dalvik Log Messages</h5><ol>
+<li>GC Reason<ul>
+<li><strong><em>GC_CONCURRENT</em></strong><br>A concurrent GC that frees up memory as your heap begins to fill up.</li>
+<li><strong><em>GC_FOR_MALLOC</em></strong><br>A GC caused because your app attempted to allocate memory when your heap was already full, so the system had to stop your app and reclaim memory.</li>
+<li><strong><em>GC_HPROF_DUMP_HEAP</em></strong><br>A GC that occurs when you request to create an HPROF file to analyze your heap.</li>
+<li><strong><em>GC_EXPLICIT</em></strong><br>An explicit GC, such as when you call gc() (which you should avoid calling and instead trust the GC to run when needed).</li>
+</ul>
+</li>
+</ol>
+<h5 id="2-ART-Log-Message"><a href="#2-ART-Log-Message" class="headerlink" title="2. ART Log Message"></a>2. ART Log Message</h5><p><a href="http://developer.android.com/tools/debugging/debugging-memory.html#LogMessages" target="_blank" rel="external">http://developer.android.com/tools/debugging/debugging-memory.html#LogMessages</a></p>
+<h2 id="五、-Battery-Analysis-Tools"><a href="#五、-Battery-Analysis-Tools" class="headerlink" title="五、 Battery Analysis Tools"></a>五、 Battery Analysis Tools</h2></div><div class="tags"><a href="/tags/Optimization/">Optimization</a></div><div class="post-nav"><a href="/2016/03/24/android-overview-screen/" class="next">Android-Overview-Screen</a></div><div data-thread-key="2016/03/30/android-performance-tools/" data-title="Android-Performance-Tools" data-url="http://ccsun.github.io/2016/03/30/android-performance-tools/" class="ds-share flat"><div class="ds-share-inline"><ul class="ds-share-icons-16"><li data-toggle="ds-share-icons-more"><a href="javascript:void(0);" class="ds-more">分享到：</a></li><li><a href="javascript:void(0);" data-service="weibo" class="ds-weibo">微博</a></li><li><a href="javascript:void(0);" data-service="qzone" class="ds-qzone">QQ空间</a></li><li><a href="javascript:void(0);" data-service="qqt" class="ds-qqt">腾讯微博</a></li><li><a href="javascript:void(0);" data-service="wechat" class="ds-wechat">微信</a></li></ul><div class="ds-share-icons-more"></div></div></div><div data-thread-key="2016/03/30/android-performance-tools/" data-title="Android-Performance-Tools" data-url="http://ccsun.github.io/2016/03/30/android-performance-tools/" data-author-key="1" class="ds-thread"></div></div></div></div><div class="pure-u-1-4"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Acivity/" style="font-size: 15px;">Acivity</a> <a href="/tags/Building/" style="font-size: 15px;">Building</a> <a href="/tags/Signing/" style="font-size: 15px;">Signing</a> <a href="/tags/Gradle/" style="font-size: 15px;">Gradle</a> <a href="/tags/DDMS/" style="font-size: 15px;">DDMS</a> <a href="/tags/Monitor/" style="font-size: 15px;">Monitor</a> <a href="/tags/Fragment/" style="font-size: 15px;">Fragment</a> <a href="/tags/IconSize/" style="font-size: 15px;">IconSize</a> <a href="/tags/Lint/" style="font-size: 15px;">Lint</a> <a href="/tags/Annotations/" style="font-size: 15px;">Annotations</a> <a href="/tags/Optimization/" style="font-size: 15px;">Optimization</a> <a href="/tags/Loaders/" style="font-size: 15px;">Loaders</a> <a href="/tags/Stack/" style="font-size: 15px;">Stack</a> <a href="/tags/项目目录/" style="font-size: 15px;">项目目录</a> <a href="/tags/DeepLink/" style="font-size: 15px;">DeepLink</a> <a href="/tags/AppIndex/" style="font-size: 15px;">AppIndex</a> <a href="/tags/JVM/" style="font-size: 15px;">JVM</a> <a href="/tags/iOS/" style="font-size: 15px;">iOS</a> <a href="/tags/Object-c/" style="font-size: 15px;">Object-c</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Spring/" style="font-size: 15px;">Spring</a> <a href="/tags/XCode/" style="font-size: 15px;">XCode</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/03/30/android-performance-tools/">Android-Performance-Tools</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/24/android-overview-screen/">Android-Overview-Screen</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/27/spring/">Spring</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/object-c-diary/">Object-c Diary</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/xcode-manual/">XCode Manual</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/18/android-ddms-and-monitor/">Android-DDMS-And-AndroidMonitor</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/11/android-displaying-bitmap-efficiently/">Android-Displaying-Bitmap-Efficiently</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/09/java-jvm-memory-management/">JVM-Memory-Management</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/04/android-improving-layout-performance/">Android-Improving-Layout-Performance</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/11/29/android-managing-memory/">Android-Managing-Memory</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">叶枫很疯.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script>var duoshuoQuery = {short_name:'ccSun7758'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-72788993-1','auto');ga('send','pageview');
+</script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?f46a81e8b7f09cf131355bd147357eb9";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+  })();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

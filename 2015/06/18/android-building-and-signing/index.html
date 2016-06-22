@@ -1,0 +1,273 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>Android-Building-And-Signing | 叶枫很疯</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/3.0.3/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">Android-Building-And-Signing</h1><a id="logo" href="/.">叶枫很疯</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">Android-Building-And-Signing</h1><div class="post-meta">Jun 18, 2015<span> | </span><span class="category"><a href="/categories/Android/">Android</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><a data-thread-key="2015/06/18/android-building-and-signing/" href="/2015/06/18/android-building-and-signing/#comments" class="ds-thread-count"></a><div class="post-content"><p>Android app的编译、签名过程，及Gradle打包脚本的配置。</p>
+<h2 id="一、-Build-Process"><a href="#一、-Build-Process" class="headerlink" title="一、 Build Process"></a>一、 Build Process</h2><p><img src="https://github.com/ccSun/hexoBlogOnGitHub/blob/master/source/_posts/android-building-and-signing/build_process.png?raw=true" alt="Build Process"></p>
+<h2 id="二、-Building-Mode"><a href="#二、-Building-Mode" class="headerlink" title="二、 Building Mode"></a>二、 Building Mode</h2><h3 id="1-Build-In-Debug-Mode"><a href="#1-Build-In-Debug-Mode" class="headerlink" title="1. Build In Debug Mode"></a>1. Build In Debug Mode</h3><p>In debug mode, the build tools automatically sign your application with a debug key and optimize the package with zipalign.The debug keystore is located in $HOME/.android/debug.keystore, and is created if not present.</p>
+<p>On Windows platforms, type this command:</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gradlew<span class="selector-class">.bat</span> assembleDebug  <span class="comment">// Debug是gradle脚本的buildTypes</span></span><br></pre></td></tr></table></figure>
+<p>On Mac OS and Linux platforms, type these commands:</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>chmod +x gradlew</span><br><span class="line"><span class="variable">$ </span>./gradlew assembleDebug</span><br></pre></td></tr></table></figure>
+<p><strong><em>Output:</em></strong></p>
+<ul>
+<li>APK for the app module is located in app/build/outputs/apk/</li>
+<li>AAR for any lib modules is located in lib/build/outputs/libs/</li>
+</ul>
+<h3 id="2、-Building-in-Release-Mode"><a href="#2、-Building-in-Release-Mode" class="headerlink" title="2、 Building in Release Mode"></a>2、 Building in Release Mode</h3><p>There are two approaches to building in release mode: build an unsigned package in release mode and then manually sign and align the package, or allow the build script to sign and align the package for you.</p>
+<h5 id="1-Build-unsigned-and-aligned"><a href="#1-Build-unsigned-and-aligned" class="headerlink" title="1. Build unsigned and aligned"></a>1. Build unsigned and aligned</h5><figure class="highlight qml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 导入gradle的编译android的控件</span></span><br><span class="line">apply <span class="attribute">plugin</span>: <span class="string">'com.android.application'</span></span><br><span class="line"></span><br><span class="line"><span class="decorator">android</span> &#123;</span><br><span class="line">    compileSdkVersion <span class="number">19</span> <span class="comment">// sdk代码版本，高版本会提示遗弃的方法</span></span><br><span class="line">    buildToolsVersion <span class="string">"19.0.0"</span></span><br><span class="line">    <span class="comment">// buildToolsVersion should be higher or equal to compileSdkVersion</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// values in defaultConfig override those in the manifest file</span></span><br><span class="line">    <span class="decorator">defaultConfig</span> &#123;</span><br><span class="line">        applicationId <span class="string">"com.example.my.app"</span> <span class="comment">//发布pro和free时用</span></span><br><span class="line">        minSdkVersion <span class="number">8</span></span><br><span class="line">        targetSdkVersion <span class="number">19</span> </span><br><span class="line">        versionCode <span class="number">1</span></span><br><span class="line">        versionName <span class="string">"1.0"</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="decorator">signingConfigs</span> &#123;</span><br><span class="line">        <span class="decorator">releaseMy</span> &#123;</span><br><span class="line">            storeFile file(<span class="string">"myreleasekey.keystore"</span>)</span><br><span class="line">            storePassword <span class="string">"password"</span></span><br><span class="line">            keyAlias <span class="string">"MyReleaseKey"</span></span><br><span class="line">            keyPassword <span class="string">"password"</span></span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 从环境变量获取            </span></span><br><span class="line">            storePassword System.getenv(<span class="string">"KSTOREPWD"</span>)</span><br><span class="line">            keyPassword System.getenv(<span class="string">"KEYPWD"</span>)</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 从console获取</span></span><br><span class="line">            storePassword System.console().readLine(<span class="string">"\nKeystore password: "</span>)</span><br><span class="line">            keyPassword System.console().readLine(<span class="string">"\nKey password: "</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 编译不同的版本app，比如free和paid版本，他们有common模块也有不同的模块</span></span><br><span class="line">    <span class="comment">// 编译时将会同时编译两个apk出来</span></span><br><span class="line">    <span class="comment">// 将会覆盖defaultConfig里的值</span></span><br><span class="line">    <span class="comment">// 创建不同的flavor代码，目录结构src/main和src/free,子目录相同</span></span><br><span class="line">    <span class="decorator">productFlavors</span> &#123;</span><br><span class="line">        <span class="decorator">pro</span> &#123;</span><br><span class="line">            applicationId = <span class="string">"com.example.my.pkg.pro"</span></span><br><span class="line">            versionName <span class="string">"1.0-pro"</span></span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="decorator">free</span> &#123;</span><br><span class="line">            applicationId = <span class="string">"com.example.my.pkg.free"</span></span><br><span class="line">            versionName <span class="string">"1.0-free"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 开发周期不同阶段编译，比如debug时用debug keystore签名，release包可以shrink并用release keystore签名</span></span><br><span class="line">	<span class="comment">// 至少定义一个buildtype，Studio默认创建debug和release</span></span><br><span class="line">	<span class="comment">// 执行编译命令的时候gradlew assembleCustom编译custom</span></span><br><span class="line">	<span class="comment">// gradlew assemblerelease编译release</span></span><br><span class="line">	<span class="comment">// 都将编译出pro和free两个包</span></span><br><span class="line">	<span class="comment">// 编译custom的时候，会在包名后再加一个后缀</span></span><br><span class="line">    <span class="decorator">buildTypes</span> &#123;</span><br><span class="line">        <span class="decorator">release</span> &#123;</span><br><span class="line">            minifyEnabled <span class="literal">true</span></span><br><span class="line">            proguardFiles getDefaultProguardFile(<span class="string">'proguard-android.txt'</span>), <span class="string">'proguard-rulse.pro'</span></span><br><span class="line">            </span><br><span class="line">            signingConfig signingConfigs.releaseMy <span class="comment">// 使用releaseMy的配置</span></span><br><span class="line">            </span><br><span class="line">            </span><br><span class="line">            resConfigs <span class="string">"en"</span>, <span class="string">"fr"</span> <span class="comment">//只使用en和fr的language</span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 也可以是debug，alpha， beta</span></span><br><span class="line">       	<span class="decorator">jnidebug</span> &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// debug配置的一份copy，接着下面的定义会覆盖debug里的参数</span></span><br><span class="line">            initWith debug</span><br><span class="line"></span><br><span class="line">            applicationIdSuffix <span class="string">".jnidebug"</span></span><br><span class="line">            jniDebuggable <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="decorator">dependencies</span> &#123;</span><br><span class="line">    <span class="comment">// The 'compile' configuration tells Gradle to add the dependency to the</span></span><br><span class="line">    <span class="comment">// compilation classpath and include it in the final package.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Dependency on the "mylibrary" module from this project</span></span><br><span class="line">    compile project(<span class="string">":mylibrary"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Remote binary dependency</span></span><br><span class="line">    compile <span class="string">'com.android.support:appcompat-v7:23.4.0'</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Local binary dependency</span></span><br><span class="line">    compile fileTree(<span class="attribute">dir</span>: <span class="string">'libs'</span>, <span class="attribute">include</span>: [<span class="string">'*.jar'</span>])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="decorator">dependencies</span> &#123;</span><br><span class="line">    compile project(<span class="string">":lib"</span>)</span><br><span class="line">    compile <span class="string">'com.android.support:appcompat-v7:19.0.1'</span></span><br><span class="line">    compile fileTree(<span class="attribute">dir</span>: <span class="string">'libs'</span>, <span class="attribute">include</span>: [<span class="string">'*.jar'</span>])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>为何要用applicationId？ manifest里的packagename是可以唯一标示apk的。packagename也用于很多资源文件的包头，包括R.java。如果同时发布一个pro和一个free版本，代码里引用的又都是com.xxx.R;再发布的时候两个id相同的是不能发布的。所以用packagename来确定包头，用applicationId来区分不同的app（谷歌App Play是用此来标识包的）。对应的debug版本添加applicationIdSuffix “.debug”。</p>
+</li>
+<li><p>Source directories<br>To build each version of your app, the build system combines source code and resources from:</p>
+<ul>
+<li>src/main/ - the main source directory (the default configuration common to all variants)</li>
+<li>src/<buildtype>/ - the source directory</buildtype></li>
+<li><p>src/<productflavor>/ - the source directory</productflavor></p>
+<p>The build type and product flavor source directories are optional.<br>For projects that do not define any flavors, the build system uses the defaultConfig settings:</p>
+</li>
+<li><p>src/main/ (default configuration)</p>
+</li>
+<li>src/release/ (build type)</li>
+<li>src/debug/ (build type)</li>
+</ul>
+</li>
+<li><p>For projects that define a set of product flavors, the build system merges the build type, product flavor and main source directories. also merges all the manifests into a single manifest. The manifest merge priority from lowest to highest is libraries/dependencies -&gt; main src -&gt; productFlavor -&gt; buildType. Resources with the same name also applies for this priority sequence.</p>
+</li>
+<li><p>manifest合并修改语法：<a href="http://developer.android.com/tools/building/manifest-merge.html#markers-selectors" target="_blank" rel="external">http://developer.android.com/tools/building/manifest-merge.html#markers-selectors</a></p>
+</li>
+</ol>
+<h5 id="2-Build-signed-and-aligned"><a href="#2-Build-signed-and-aligned" class="headerlink" title="2. Build signed and aligned"></a>2. Build signed and aligned</h5><figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class">android </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="class">defaultConfig </span>&#123; ... &#125;</span><br><span class="line">    <span class="class">signingConfigs </span>&#123;</span><br><span class="line">        <span class="class">release </span>&#123;</span><br><span class="line">            storeFile file(<span class="string">"myreleasekey.keystore"</span>)</span><br><span class="line">            storePassword <span class="string">"password"</span></span><br><span class="line">            keyAlias <span class="string">"MyReleaseKey"</span></span><br><span class="line">            keyPassword <span class="string">"password"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="class">buildTypes </span>&#123;</span><br><span class="line">        <span class="class">release </span>&#123;</span><br><span class="line">            ...</span><br><span class="line">            signingConfig signingConfigs.release</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Including the passwords for your release key and keystore inside the build file is not a good security practice. </p>
+<p>To obtain these passwords from environment variables:</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">storePassword <span class="keyword">System</span>.getenv(<span class="string">"KSTOREPWD"</span>)</span><br><span class="line">keyPassword <span class="keyword">System</span>.getenv(<span class="string">"KEYPWD"</span>)</span><br></pre></td></tr></table></figure>
+<p>To have the build process prompt you for these passwords if you are invoking the build from the command line:</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">storePassword System.<span class="built_in">console</span>().readLine(<span class="string">"\nKeystore password: "</span>)</span><br><span class="line">keyPassword System.<span class="built_in">console</span>().readLine(<span class="string">"\nKey password: "</span>)</span><br></pre></td></tr></table></figure>
+<p><strong><em>Output</em></strong><br>This creates your Android application .apk file inside the module build/ directory, named <your_module_name>-release.apk. This .apk file has been signed with the private key specified in build.gradle file and aligned with zipalign. It’s ready for installation and distribution.</your_module_name></p>
+<h2 id="三、-Signing-App-Manually"><a href="#三、-Signing-App-Manually" class="headerlink" title="三、 Signing App Manually"></a>三、 Signing App Manually</h2><ol>
+<li><p>Generate a private key using keytool</p>
+<pre><code>$ keytool -genkey -v -keystore my-release-key.keystore -alias alias_name -keyalg RSA -keysize 2048 -validity 10000
+</code></pre></li>
+<li><p>Sign your app with your private key using jarsigner</p>
+<pre><code>$ jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my-release-key.keystore my_application.apk alias_name
+</code></pre></li>
+<li><p>Verify that your APK is signed</p>
+<pre><code>$ jarsigner -verify -verbose -certs my_application.apk
+</code></pre></li>
+<li><p>Align the final APK package using zipalign</p>
+<pre><code>$ zipalign -v 4 your_project_name-unaligned.apk your_project_name.apk
+</code></pre></li>
+</ol>
+<p>zipalign ensures that all uncompressed data starts with a particular byte alignment relative to the start of the file, which reduces the amount of RAM consumed by an app.对齐资源文件、数据文件，在访问的时候可以节省内存，加快效率。</p>
+<h2 id="四、-Signing-Considerations"><a href="#四、-Signing-Considerations" class="headerlink" title="四、 Signing Considerations"></a>四、 Signing Considerations</h2><ol>
+<li><strong><em>App upgrade</em></strong><br>The system allows the update if the certificates match. If you sign the new version with a different certificate, you must assign a different package name to the application—in this case, the user installs the new version as a completely new application.</li>
+<li><strong><em>App modularity</em></strong><br>Android <strong><em>allows apps signed by the same certificate to run in the same process</em></strong>, if the applications so requests, so that the system treats them as a single application. In this way you can deploy your app in modules, and users can update each of the modules independently.</li>
+<li><strong><em>Code/data</em></strong><br>By signing multiple apps with the same certificate and using signature-based permissions checks, your apps can share code and data in a secure manner.</li>
+</ol>
+<h2 id="五、-Merge-Manifest-File"><a href="#五、-Merge-Manifest-File" class="headerlink" title="五、 Merge Manifest File"></a>五、 Merge Manifest File</h2><h3 id="1-Priority"><a href="#1-Priority" class="headerlink" title="1. Priority"></a>1. Priority</h3><p>High -&gt; Low:    </p>
+<ol>
+<li>buildTypes manifest file</li>
+<li>productFlavors manifest file</li>
+<li>src/main</li>
+<li>dependencies and libraries manifest file</li>
+</ol>
+<h3 id="2-Merge-Rules"><a href="#2-Merge-Rules" class="headerlink" title="2. Merge Rules"></a>2. Merge Rules</h3><table>
+<thead>
+<tr>
+<th>High Priority</th>
+<th>Low Priority</th>
+<th>merge Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无值</td>
+<td>无值</td>
+<td>无值</td>
+</tr>
+<tr>
+<td>无值</td>
+<td>default</td>
+<td>default</td>
+</tr>
+<tr>
+<td>无值</td>
+<td>non-def</td>
+<td>non-def</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>def</td>
+<td>无值</td>
+<td>def</td>
+</tr>
+<tr>
+<td>def</td>
+<td>default</td>
+<td>default</td>
+</tr>
+<tr>
+<td>def</td>
+<td>non-def</td>
+<td>non-def</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>non-def</td>
+<td>无值</td>
+<td>non-def</td>
+</tr>
+<tr>
+<td>non-def</td>
+<td>default</td>
+<td>non-def</td>
+</tr>
+<tr>
+<td>non-def</td>
+<td>non-def</td>
+<td>Merge if settings match, otherwise causes conflict error.</td>
+</tr>
+</tbody>
+</table>
+<p><strong><em>Note</em></strong>    </p>
+<ol>
+<li>manifest的元素只合并该元素的子元素；</li>
+<li>intent-filter只会添加到common父节点，不会合并；</li>
+<li>library的minSdkVersion大于高优先级的设置，则无法合并；除非手动指定overrideLibrary；</li>
+</ol>
+<h3 id="3-Merge-Gramma"><a href="#3-Merge-Gramma" class="headerlink" title="3. Merge Gramma"></a>3. Merge Gramma</h3><p>可以解决library的minSdkVersion大于高优先级的manifest的设定时候无法合并的问题；</p>
+<h5 id="1-Keywords"><a href="#1-Keywords" class="headerlink" title="1. Keywords"></a>1. Keywords</h5><ol>
+<li>merge 默认合并</li>
+<li>replace 高优先级替换低优先级</li>
+<li>strict 设定的属性值必须相同，否则build报错</li>
+<li>merge-only 只合并低优先级</li>
+<li>remove 移除指定节点</li>
+<li>remove-all 移除相同节点下所有低优先级属性</li>
+</ol>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;application</span><br><span class="line"><span class="symbol">	android:</span>icon=<span class="string">"@drawable/icon"</span></span><br><span class="line"><span class="symbol">	android:</span>label=<span class="string">"@string/app_name"</span></span><br><span class="line"><span class="symbol">	tools:</span>replace=<span class="string">"icon, label"</span>&gt;</span><br><span class="line">	</span><br><span class="line"><span class="comment">// 覆盖低优先级的android:targetSdkVersion，android:minSdkVersion</span></span><br><span class="line">&lt;uses-sdk <span class="string">android:</span>targetSdkVersion=<span class="string">"22"</span> <span class="string">android:</span>minSdkVersion=<span class="string">"2"</span></span><br><span class="line"><span class="string">tools:</span>overrideLibrary=<span class="string">"com.example.lib1, com.example.lib2"</span>/&gt;</span><br><span class="line">     </span><br><span class="line"><span class="comment">// 移除com.example.lib1的这个权限</span></span><br><span class="line">&lt;permission</span><br><span class="line"><span class="string">android:</span>name=<span class="string">"permissionOne"</span></span><br><span class="line"><span class="string">tools:</span>node=<span class="string">"remove"</span></span><br><span class="line"><span class="string">tools:</span>selector=<span class="string">"com.example.lib1"</span>&gt;</span><br></pre></td></tr></table></figure>
+<h5 id="2-注入变量applicationId"><a href="#2-注入变量applicationId" class="headerlink" title="2. 注入变量applicationId"></a>2. 注入变量applicationId</h5><p>Manifest entry:</p>
+<figure class="highlight dust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:name</span>=<span class="string">".Main"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"$</span></span></span><span class="template-variable">&#123;applicationId&#125;</span><span class="xml"><span class="tag"><span class="string">.foo"</span>&gt;</span><span class="tag">&lt;/<span class="name">action</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>Gradle build file:</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">android</span> &#123;</span><br><span class="line">    <span class="attribute">compileSdkVersion</span> <span class="number">22</span></span><br><span class="line">    buildToolsVersion <span class="string">"22.0.1"</span></span><br><span class="line"></span><br><span class="line">    productFlavors &#123;</span><br><span class="line">        <span class="section">flavor1</span> &#123;</span><br><span class="line">            <span class="attribute">applicationId</span> = <span class="string">"com.mycompany.myapplication.productFlavor1"</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h5 id="3-注入其他属性"><a href="#3-注入其他属性" class="headerlink" title="3. 注入其他属性"></a>3. 注入其他属性</h5><p>Manifest entry:    </p>
+<figure class="highlight dust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:name</span>=<span class="string">".MainActivity"</span> <span class="attr">android:label</span>=<span class="string">"$</span></span></span><span class="template-variable">&#123;activityLabel&#125;</span><span class="xml"><span class="tag"><span class="string">"</span> &gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>Gradle build file:</p>
+<figure class="highlight qml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="decorator">android</span> &#123;</span><br><span class="line">    <span class="decorator">defaultConfig</span> &#123;</span><br><span class="line">        manifestPlaceholders = [ <span class="attribute">activityLabel</span>:<span class="string">"defaultName"</span>]</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="decorator">productFlavors</span> &#123;</span><br><span class="line">        <span class="decorator">free</span> &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="decorator">pro</span> &#123;</span><br><span class="line">            manifestPlaceholders = [ <span class="attribute">activityLabel</span>:<span class="string">"proName"</span> ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="六、-Improve-build-times-by-configuring-DEX-resources"><a href="#六、-Improve-build-times-by-configuring-DEX-resources" class="headerlink" title="六、 Improve build times by configuring DEX resources"></a>六、 Improve build times by configuring DEX resources</h2><ol>
+<li><p>build.gradle 配置Dex编译项</p>
+ <figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class">android </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="class">dexOptions </span>&#123;</span><br><span class="line">    maxProcessCount <span class="number">4</span> <span class="comment">// this is the default value</span></span><br><span class="line">    javaMaxHeapSize <span class="string">"2g"</span> <span class="comment">// 2m 2k单位</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>maxProcessCount：设置可以同时启动的Dex Process数量；./gradlew –stop可以停掉以启动的gradle进程；</li>
+<li><p>javaMaxHeapSize：Dex操作可以分配的最大内存；    </p>
+<p><strong><em>Note</em></strong><br>但是并不是分配的越大越好，越大反而会越慢。要多次设置调试观察build时间。</p>
+</li>
+</ol>
+</li>
+<li><p>gradle.properties 设置Dex-in-process</p>
+ <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">org<span class="selector-class">.gradle</span><span class="selector-class">.jvmargs</span> = -Xmx2048m <span class="comment">// def 2G，如果设置了javaMaxHeapSize，这里的值设置为javaMaxHeapSize＋1024M</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>Incremental Java compilation：默认开启，只变异变动的java files；</li>
+<li>Dex-in-process可以不单单是加快incremental build过程，实际上可以加快整个build过程</li>
+</ol>
+</li>
+</ol>
+<h2 id="七、-Apps-Over-64k-Methods"><a href="#七、-Apps-Over-64k-Methods" class="headerlink" title="七、 Apps Over 64k Methods"></a>七、 Apps Over 64k Methods</h2><ol>
+<li><p><strong><em>Build Error:</em></strong></p>
+<ul>
+<li><p>Earlier versions of the build system report this error as follows</p>
+  <figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Conversion <span class="keyword">to</span> Dalvik format failed:</span><br><span class="line">Unable <span class="keyword">to</span> execute dex: <span class="function"><span class="keyword">method</span> <span class="title">ID</span> <span class="title">not</span> <span class="title">in</span> [0, 0<span class="title">xffff</span>]:</span> <span class="number">65536</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>More recent versions of the Android build system display a different error</p>
+  <figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">trouble writing outpu<span class="variable">t:</span></span><br><span class="line">Too many field reference<span class="variable">s:</span> <span class="number">131000</span>; <span class="built_in">max</span> <span class="keyword">is</span> <span class="number">65536</span>.</span><br><span class="line">You may <span class="keyword">try</span> using --multi-dex option.</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>一个dalvik里能引用的方法数量上限65536（65,536＝64 X 1024，又称64k reference limit）个。Android application (APK) files contain executable bytecode files in the form of Dalvik Executable (DEX) files；The Dalvik Executable specification <strong><em>limits the total number of methods that can be referenced within a single DEX file to 65,536</em></strong>, including Android framework methods, library methods, and methods in your own code. <strong><em>Getting past this limit requires that you configure your app build process to generate more than one DEX file</em></strong>, known as a multidex configuration. </p>
+</li>
+<li><p>Solution:    </p>
+<ol>
+<li>对引入的大dependency进行简化，去掉不必要的代码</li>
+<li>用progurad移除不必要的代码</li>
+</ol>
+</li>
+<li><p>打开multi-dex:</p>
+<ol>
+<li><p>build.gradle </p>
+ <figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">    compileSdkVersion <span class="number">21</span></span><br><span class="line">    buildToolsVersion <span class="string">"21.1.0"</span></span><br><span class="line"></span><br><span class="line">    defaultConfig &#123;</span><br><span class="line">    <span class="attr">...</span></span><br><span class="line">    minSdkVersion <span class="number">14</span></span><br><span class="line">    targetSdkVersion <span class="number">21</span></span><br><span class="line">    <span class="attr">...</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Enabling multidex support.</span></span><br><span class="line">    multiDexEnabled <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="attr">...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    compile <span class="string">'com.android.support:multidex:1.0.0'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+<pre><code>2. manifest
+
+    <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">manifest</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span></span><br><span class="line">          <span class="attr">package</span>=<span class="string">"com.example.android.multidex.myapplication"</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">application</span></span><br><span class="line">              <span class="attr">...</span></span><br><span class="line">        		 <span class="attr">android:name</span>=<span class="string">"android.support.multidex.MultiDexApplication"</span>&gt;</span></span><br><span class="line">              ...</span><br><span class="line">          <span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</code></pre><p><strong><em>Note:</em></strong></p>
+<ol>
+<li>5.0 API21 以前，是dalvik，默认单dex，会有64k reference limit问题；</li>
+<li><p>5.0及以后，是aot，默认就支持多dex。</p>
+</li>
+<li><p>Multi-dex局限性</p>
+</li>
+</ol>
+<p>会有ANR，Crash等问题。</p>
+<ol>
+<li>优化Multi-dex编译</li>
+</ol>
+<p>打开multi-dex会增加编译时间，因为build process需要决定哪些方法放在第一个dex，哪些在第二个。通过多个flavor，来调整一下在debug和发布生产包时候的时间。</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class">android </span>&#123;</span><br><span class="line">    <span class="class">productFlavors </span>&#123;</span><br><span class="line">        <span class="comment">// Define separate dev and prod product flavors.</span></span><br><span class="line">        <span class="class">dev </span>&#123;</span><br><span class="line">        	<span class="comment">// api 21 使用ART，能更快的编译multi-dex</span></span><br><span class="line">            <span class="comment">// dev utilizes minSDKVersion = 21 to allow the Android gradle plugin</span></span><br><span class="line">            <span class="comment">// to pre-dex each module and produce an APK that can be tested on</span></span><br><span class="line">            <span class="comment">// Android Lollipop without time consuming dex merging processes.</span></span><br><span class="line">            minSdkVersion <span class="number">21</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="class">prod </span>&#123;</span><br><span class="line">            <span class="comment">// The actual minSdkVersion for the application.</span></span><br><span class="line">            minSdkVersion <span class="number">14</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时设置buildType为devDebug，那么在debug时可以节省很多时间。（Studio左侧弹出设置窗口，或者在Build－&gt;Select Build Variant弹出）</p>
+<ol>
+<li><a href="https://developer.android.com/studio/build/multidex.html#testing" target="_blank" rel="external">Test Multi-dex</a></li>
+</ol>
+<h2 id="八、-Install-And-Execute"><a href="#八、-Install-And-Execute" class="headerlink" title="八、 Install And Execute"></a>八、 Install And Execute</h2><ol>
+<li>APK打包的是dex文件。</li>
+<li><p>安装分为两种情况：</p>
+<ol>
+<li>Dalvik＋JIT：Android 5.0 API 21以前的版本，安装时JIT解析dex文件为odex，dex和odex其实都是Dalvik可以解析的字节码，Dalvik在apk运行时把Dalvik字节码解析为本机机器码执行。解析成odex，运行时dalvik不必每次都从apk中提取dex，速度加快了。但是odex因为字节对齐会比dex扩大1～4倍。</li>
+<li>ART+AOT：Android 5.0 API 21及以后的版本，安装时AOT解析dex文件为aot文件，但是命名为odex文件。这里的odex文件本质是elf文件，其中都是本机机器码。</li>
+</ol>
+</li>
+<li><p>JIT: just-in-time</p>
+</li>
+<li>AOT: ahead-of-time，类似于C语言编译时便确定了可执行环境的机器码。</li>
+</ol>
+<h2 id="九、-Instant-Run"><a href="#九、-Instant-Run" class="headerlink" title="九、 Instant Run"></a>九、 Instant Run</h2><h3 id="1-Require"><a href="#1-Require" class="headerlink" title="1. Require"></a>1. Require</h3><ol>
+<li>Gradle version 2.0.0 or higher</li>
+<li>minSdkVersion to 15 or higher，最优性能是minSdkVersion 21 Android 5.0及以上。因为在打开multi-dex的时候，instant run有可能会被关闭(参考<a href="https://developer.android.com/studio/build/multidex.html" target="_blank" rel="external">Multidex support prior to Android 5.0</a>)。</li>
+</ol>
+<h3 id="2-4-Level"><a href="#2-4-Level" class="headerlink" title="2. 4 Level"></a>2. 4 Level</h3><ol>
+<li>hot swap: 只修改了method时最快，可以不重启activity，但是studio会帮你重启</li>
+<li>warm swap: 改变或者删除资源文件，需要重启activity</li>
+<li>cold swap: API 21以上需要重启app，以下需要build一个新的apk</li>
+<li>new deploy: 只要改变了manifest，都需要重新编译apk。所以在build.gradle的debug type下不要动态update manifest文件</li>
+</ol>
+<h3 id="3-Configure-Instatn-Run"><a href="#3-Configure-Instatn-Run" class="headerlink" title="3. Configure Instatn Run"></a>3. Configure Instatn Run</h3><ol>
+<li>Open the Settings or Preferences dialog.</li>
+<li>Navigate to Build, Execution, Deployment &gt; Instant Run and click Update Project,</li>
+</ol>
+</div><div class="tags"><a href="/tags/Building/">Building</a><a href="/tags/Signing/">Signing</a><a href="/tags/Gradle/">Gradle</a></div><div class="post-nav"><a href="/2015/07/09/android-tools/" class="pre">Android-Tools</a><a href="/2015/06/04/android-icon-size/" class="next">Android-Icon-Size</a></div><div data-thread-key="2015/06/18/android-building-and-signing/" data-title="Android-Building-And-Signing" data-url="http://ccsun.github.io/2015/06/18/android-building-and-signing/" class="ds-share flat"><div class="ds-share-inline"><ul class="ds-share-icons-16"><li data-toggle="ds-share-icons-more"><a href="javascript:void(0);" class="ds-more">分享到：</a></li><li><a href="javascript:void(0);" data-service="weibo" class="ds-weibo">微博</a></li><li><a href="javascript:void(0);" data-service="qzone" class="ds-qzone">QQ空间</a></li><li><a href="javascript:void(0);" data-service="qqt" class="ds-qqt">腾讯微博</a></li><li><a href="javascript:void(0);" data-service="wechat" class="ds-wechat">微信</a></li></ul><div class="ds-share-icons-more"></div></div></div><div data-thread-key="2015/06/18/android-building-and-signing/" data-title="Android-Building-And-Signing" data-url="http://ccsun.github.io/2015/06/18/android-building-and-signing/" data-author-key="1" class="ds-thread"></div></div></div></div><div class="pure-u-1-4"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Acivity/" style="font-size: 15px;">Acivity</a> <a href="/tags/Building/" style="font-size: 15px;">Building</a> <a href="/tags/Signing/" style="font-size: 15px;">Signing</a> <a href="/tags/Gradle/" style="font-size: 15px;">Gradle</a> <a href="/tags/DDMS/" style="font-size: 15px;">DDMS</a> <a href="/tags/Monitor/" style="font-size: 15px;">Monitor</a> <a href="/tags/Fragment/" style="font-size: 15px;">Fragment</a> <a href="/tags/IconSize/" style="font-size: 15px;">IconSize</a> <a href="/tags/Lint/" style="font-size: 15px;">Lint</a> <a href="/tags/Annotations/" style="font-size: 15px;">Annotations</a> <a href="/tags/Optimization/" style="font-size: 15px;">Optimization</a> <a href="/tags/Loaders/" style="font-size: 15px;">Loaders</a> <a href="/tags/Stack/" style="font-size: 15px;">Stack</a> <a href="/tags/项目目录/" style="font-size: 15px;">项目目录</a> <a href="/tags/DeepLink/" style="font-size: 15px;">DeepLink</a> <a href="/tags/AppIndex/" style="font-size: 15px;">AppIndex</a> <a href="/tags/JVM/" style="font-size: 15px;">JVM</a> <a href="/tags/iOS/" style="font-size: 15px;">iOS</a> <a href="/tags/Object-c/" style="font-size: 15px;">Object-c</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Spring/" style="font-size: 15px;">Spring</a> <a href="/tags/XCode/" style="font-size: 15px;">XCode</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/03/30/android-performance-tools/">Android-Performance-Tools</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/24/android-overview-screen/">Android-Overview-Screen</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/27/spring/">Spring</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/object-c-diary/">Object-c Diary</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/xcode-manual/">XCode Manual</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/18/android-ddms-and-monitor/">Android-DDMS-And-AndroidMonitor</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/11/android-displaying-bitmap-efficiently/">Android-Displaying-Bitmap-Efficiently</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/09/java-jvm-memory-management/">JVM-Memory-Management</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/04/android-improving-layout-performance/">Android-Improving-Layout-Performance</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/11/29/android-managing-memory/">Android-Managing-Memory</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">叶枫很疯.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script>var duoshuoQuery = {short_name:'ccSun7758'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-72788993-1','auto');ga('send','pageview');
+</script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?f46a81e8b7f09cf131355bd147357eb9";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+  })();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

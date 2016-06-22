@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>Android-Activity | 叶枫很疯</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/3.0.3/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">Android-Activity</h1><a id="logo" href="/.">叶枫很疯</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">Android-Activity</h1><div class="post-meta">Oct 4, 2015<span> | </span><span class="category"><a href="/categories/Android/">Android</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><a data-thread-key="2015/10/04/android-activity/" href="/2015/10/04/android-activity/#comments" class="ds-thread-count"></a><div class="post-content"><p>收录所有与Activity相关的内容。如生命周期，状态保存，内存溢出，启动模式等。</p>
+<h2 id="一、-Acvitity生命周期"><a href="#一、-Acvitity生命周期" class="headerlink" title="一、 Acvitity生命周期"></a>一、 Acvitity生命周期</h2><p><img src="https://github.com/ccSun/hexoBlogOnGitHub/blob/master/source/_posts/android-activity/activity_lifecycle.png?raw=true" alt="Acvitity Lifecycle"></p>
+<h3 id="1-Starting-an-Activity"><a href="#1-Starting-an-Activity" class="headerlink" title="1. Starting an Activity"></a>1. Starting an Activity</h3><ol>
+<li>you might call finish() from within onCreate() to destroy the activity. In this case, the system immediately calls onDestroy() without calling any of the other lifecycle methods.</li>
+<li>For example, if your activity has a thread running in the background to download data from the network, it might create that thread in onCreate() and then stop the thread in onDestroy().</li>
+</ol>
+<h3 id="2-Pause-Your-Activity"><a href="#2-Pause-Your-Activity" class="headerlink" title="2. Pause Your Activity"></a>2. Pause Your Activity</h3><p>Another activity is visible on top of this one and that activity is partially transparent or doesn’t cover the entire screen.A paused activity is completely alive, but can be killed by the system in extremely low memory situations. the system can drop it from memory either by asking it to finish (calling its finish() method), or simply killing its process.</p>
+<ol>
+<li><p>You should usually use the onPause() callback to:</p>
+<ul>
+<li>Stop animations or other ongoing actions that could <strong>consume CPU</strong>.</li>
+<li><strong>Commit unsaved changes</strong>, but only if users expect such changes to be permanently saved when they leave (such as a draft email).保存永久的数据要放到onDestroy();因为保存draft需要被用户看到，所以放到onPause();</li>
+<li><strong>Release system resources</strong>, such as broadcast receivers, handles to sensors (like GPS), or any resources that may affect battery life while your activity is paused and the user does not need them.     </li>
+</ul>
+</li>
+<li><p><strong>avoid performing CPU-intensive work during onPause()</strong>, such as writing to a database, because <strong>it can slow the visible transition to the next activity</strong> (you should instead <strong>perform heavy-load shutdown operations during onStop()</strong>).</p>
+</li>
+<li>Because this state (Resume &amp; Pause) can transition often, the code in these two methods should be fairly lightweight in order to avoid slow transitions that make the user wait.</li>
+</ol>
+<h3 id="3-Resume-Your-Activity"><a href="#3-Resume-Your-Activity" class="headerlink" title="3. Resume Your Activity"></a>3. Resume Your Activity</h3><ol>
+<li>you should implement onResume() to initialize components that you release during onPause() and perform any other initializations that must occur each time the activity enters the Resumed state (such as begin animations and initialize components only used while the activity has user focus).</li>
+<li>When the activity resumes, you can reacquire the necessary resources and resume actions that were interrupted. </li>
+<li>Because this state (Resume &amp; Pause) can transition often, the code in these two methods should be fairly lightweight in order to avoid slow transitions that make the user wait.</li>
+</ol>
+<h3 id="4-Stop-Your-Activity"><a href="#4-Stop-Your-Activity" class="headerlink" title="4. Stop Your Activity"></a>4. Stop Your Activity</h3><p>The activity is completely obscured by another activity (the activity is now in the “background”). However, it is no longer visible to the user and it can be killed by the system when memory is needed elsewhere. the system can drop it from memory either by asking it to finish (calling its finish() method), or simply killing its process.</p>
+<ol>
+<li><p>Once your activity is stopped, <strong>the system might destroy the instance if it needs to recover system memory</strong>. In extreme cases, the system might <strong>simply kill your app process without calling the activity’s final onDestroy()</strong> callback, so it’s important you <strong>use onStop() to release resources that might leak memoy.</strong></p>
+</li>
+<li><p><strong>Even if the system destroys your activity while it’s stopped, it still retains the state of the View objects</strong> (such as text in an EditText) in a Bundle (a blob of key-value pairs) and restores them if the user navigates back to the same instance of the activity.</p>
+</li>
+<li><p>when stopped, your activity should release any large objects, such as network or database connections. onStart() &amp; onStop() maintains resources that are needed to <strong><em>show the activity</em></strong> to the user. For example, you can register a BroadcastReceiver in onStart() to monitor changes that impact your UI, and unregister it in onStop() when the user can no longer see what you are displaying.<br><strong><em>release:</em></strong></p>
+<ul>
+<li>network</li>
+<li>database</li>
+<li>receiver</li>
+</ul>
+</li>
+<li><p>内存不足时，会回调onLowMemory()/onTrimMemory()释放ui显示使用的图片、数组、缓存等资源。</p>
+<ul>
+<li><p>onLowMemory() 被回调时，已经没有后台进程(优先级为background的进程)，是在最后一个后台进程被杀时调用，一般情况是low memory killer 杀进程后触发；可以自定义实现ComponentCallbacks的onLowMemory()方法:</p>
+  <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">Acitivity</span><span class="selector-class">.registerComponentCallbacks</span>(<span class="selector-tag">callBack</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>onTrimMemory(int) 在android 4.0之后新增，onTrimMemory被回调时，还有后台进程，触发更频繁，每次计算进程优先级时，只要满足条件，都会触发）。先调用onStop()时，不用释放ui资源，因为用户有可能返回；参数是优先级，不同的级别区分；</p>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="5-Start-Restart-Your-Activity"><a href="#5-Start-Restart-Your-Activity" class="headerlink" title="5. Start/Restart Your Activity"></a>5. Start/Restart Your Activity</h3><ol>
+<li>the user might have been away from your app for a long time before coming back it, the <strong>onStart()</strong> method is a good place to <strong>verify that required system features are enabled.</strong></li>
+</ol>
+<h3 id="6-Recreating-an-Activity"><a href="#6-Recreating-an-Activity" class="headerlink" title="6. Recreating an Activity"></a>6. Recreating an Activity</h3><ol>
+<li>When your activity is <strong>destroyed because the user presses Back or the activity finishes itself, the system’s concept of that Activity instance is gone forever</strong> because the behavior indicates the activity is no longer needed. However, if the system <strong>destroys the activity due to system constraints (rather than normal app behavior), then although the actual Activity instance is gone, the system remembers that it existed.</strong> 只要是被系统销毁的activity，系统都会保存Activity的状态，这是系统的责任。</li>
+<li>Your activity will be <strong>destroyed and recreated each time the user rotates the screen.</strong></li>
+<li>If onSaveInstanceState() is called, <strong>this method will occur before onStop().</strong> There are no guarantees about whether it will occur before or after onPause().</li>
+</ol>
+<h3 id="7-Destroy-an-Activity"><a href="#7-Destroy-an-Activity" class="headerlink" title="7. Destroy an Activity"></a>7. Destroy an Activity</h3><ol>
+<li>onPause() -&gt; Process Killed</li>
+<li>onPause() -&gt; onStop() -&gt; Process Killed</li>
+<li>onPause() -&gt; onStop() -&gt; onDestroy()</li>
+</ol>
+<h2 id="二、-状态变化"><a href="#二、-状态变化" class="headerlink" title="二、 状态变化"></a>二、 状态变化</h2><p>假设在一个EditText中输入文本，</p>
+<ol>
+<li>按Home键，再重新返回，文本还在。生命周期onPause()-&gt;onStop();</li>
+<li>切换横屏，文本会消失，因为此时Activity会onDestroy()后，重新onCreate()；</li>
+<li>Activity在onStop()状态直接被销毁了，在点击返回键返回原Activity的时候，文本还在；</li>
+</ol>
+<h3 id="1-Save-Your-Activity-State"><a href="#1-Save-Your-Activity-State" class="headerlink" title="1. Save Your Activity State"></a>1. Save Your Activity State</h3><p>When onSaveInstanceState() will be called:</p>
+<ol>
+<li>When you press button Home; But when you press Back this func will not be called;</li>
+<li>When one acivity come in front of the current one, such as someone call in;</li>
+<li>When you press Power button;</li>
+<li>When you long press Power button to change to another application;</li>
+<li>When you rotate the screen;(onPause -&gt; onSaveInstanceState -&gt; onStop -&gt; onDestroy -&gt; onCreate -&gt; onRestart -&gt; onResume. 这里的调用顺序跟A启动B再返回A是有区别的。如果有onSaveInstanceState才会调用onRestoreInstanceState，所以在onRetsoreState中不用检查Bundle为空的case。)    </li>
+</ol>
+<p>总结起来就是：当系统有可能在你不知道的情况下销毁Activity的情况下，系统会帮你调用onSaveInstanceState()给你机会保存数据。实际操作的体验是：只有切换横竖屏的时候，文本框的数据会消失，其他情况都不会消失。但是确实都会call onSaveInstanceState()。默认的实现中，系统已经默认提供实现保存ui的状态信息。前提是：The only work required of you is to provide a unique ID (with the android:id attribute) for each widget you want to save its state. If a widget does not have an ID, then the system cannot save its state.</p>
+<h3 id="2-Restore-Your-Activity-State"><a href="#2-Restore-Your-Activity-State" class="headerlink" title="2. Restore Your Activity State"></a>2. Restore Your Activity State</h3><ol>
+<li><p>Both the onCreate() and onRestoreInstanceState() callback methods receive the same Bundle that contains the instance state information.</p>
+<ul>
+<li>onCreate() method is called whether the system is creating a new instance of your activity or recreating a previous one, <strong>you must check whether the state Bundle is null</strong> before you attempt to read it. So you can restore some state data in onCreate()</li>
+<li>onRestoreInstanceState(), which the system <strong>calls after the onStart() method.</strong> The system <strong>calls onRestoreInstanceState() only if there is a saved state to restore, so you do not need to check whether the Bundle is null</strong>.</li>
+</ul>
+</li>
+<li><p>Always call the superclass implementation of onRestoreInstanceState() so the default implementation can restore the state of the view hierarchy.</p>
+</li>
+</ol>
+<h3 id="3-Calling-sequence"><a href="#3-Calling-sequence" class="headerlink" title="3. Calling sequence"></a>3. Calling sequence</h3><h4 id="a-onStoreInstanceState-amp-onRestoreInstanceState"><a href="#a-onStoreInstanceState-amp-onRestoreInstanceState" class="headerlink" title="a. onStoreInstanceState() &amp; onRestoreInstanceState()"></a>a. onStoreInstanceState() &amp; onRestoreInstanceState()</h4><p>onStart() -&gt; onRestoreInstanceState()<br>onSaveInstanceState() -&gt; onStop()</p>
+<p><strong><em>There are no guarantees about whether it will occur before or after onPause().</em></strong></p>
+<h4 id="b-Activity-A-amp-B"><a href="#b-Activity-A-amp-B" class="headerlink" title="b. Activity A &amp; B"></a>b. Activity A &amp; B</h4><p>(1) A start B:<br>A onPause() -&gt; B onCreate() -&gt; B onStart() -&gt; B onResume() -&gt; A onStop()<br>(2) B returen to A:<br>B onPause() -&gt; A onRestart() -&gt; A onStart() -&gt; A onResume() -&gt; B onStop() -&gt; B onDestroy()    </p>
+<h2 id="三、-Leaked-Activity"><a href="#三、-Leaked-Activity" class="headerlink" title="三、 Leaked Activity"></a>三、 Leaked Activity</h2><ol>
+<li><p>Call finish() after startActivity() will lead A activity to a leaked activity. // 内存优化 内存溢出</p>
+ <figure class="highlight ceylon"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Intent intent = <span class="keyword">new</span> Intent(A.<span class="keyword">this</span>, B.<span class="keyword">class</span>);</span><br><span class="line">MainActivity.<span class="keyword">this</span>.startActivity(intent);</span><br><span class="line">MainActivity.<span class="keyword">this</span>.finish();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><em>to be continued</em></strong></p>
+</li>
+</ol>
+<h2 id="四、-Start-An-Activity"><a href="#四、-Start-An-Activity" class="headerlink" title="四、 Start An Activity"></a>四、 Start An Activity</h2><ol>
+<li><p>implict intent</p>
+ <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Intent</span> <span class="keyword">intent</span> = new <span class="keyword">Intent</span>(<span class="keyword">Intent</span>.ACTION_SEND);</span><br><span class="line"><span class="keyword">intent</span>.putExtra(<span class="keyword">Intent</span>.EXTRA_EMAIL, recipientArray);</span><br><span class="line">startActivity(<span class="keyword">intent</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>explict intent</p>
+ <figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Intent</span> <span class="keyword">intent</span> = new <span class="keyword">Intent</span>(this, SignInActivity.<span class="keyword">class</span>);</span><br><span class="line">startActivity(<span class="keyword">intent</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>start activity with a result</p>
+ <figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">void</span> <span class="title">pickContact</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Create an intent to "pick" a contact, as defined by the content provider URI</span></span><br><span class="line">    Intent intent = <span class="keyword">new</span> Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI);</span><br><span class="line">    startActivityForResult(intent, PICK_CONTACT_REQUEST);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">void</span> <span class="title">onActivityResult</span><span class="params">(<span class="keyword">int</span> requestCode, <span class="keyword">int</span> resultCode, Intent data)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// If the request went well (OK) and the request was PICK_CONTACT_REQUEST</span></span><br><span class="line">    <span class="keyword">if</span> (resultCode == Activity.RESULT_OK &amp;&amp; requestCode == PICK_CONTACT_REQUEST) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="五、-Declaring-Activity"><a href="#五、-Declaring-Activity" class="headerlink" title="五、 Declaring Activity "></a>五、 Declaring Activity <intent-filter></intent-filter></h2><ol>
+<li>If you intend for your application to be self-contained and not allow other applications to activate its activities, then you don’t need any other intent filters. Only one activity should have the “main” action and “launcher” category.</li>
+<li>However, if you want your activity to respond to implicit intents that are delivered from other applications, you must include an <intent-filter> that includes an <action> element and, optionally, a <category> element and/or a <data> element. </data></category></action></intent-filter></li>
+<li><p>The <action> element specifies that this is the “main” entry point to the application. </action></p>
+ <figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;action android:<span class="built_in">name</span>=<span class="string">"android.intent.action.MAIN"</span> /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>The <category> element specifies that this activity should be listed in the system’s application launcher (to allow users to launch this activity).</category></p>
+ <figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;category android:<span class="built_in">name</span>=<span class="string">"android.intent.category.LAUNCHER"</span> /&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><strong><em>In order to receive implicit intents, you must include the CATEGORY_DEFAULT category in the intent filter</em></strong>. The methods startActivity() and startActivityForResult() treat all intents as if they declared the CATEGORY_DEFAULT category. If you do not declare it in your intent filter, no implicit intents will resolve to your activity.</p>
+<h2 id="六、-Activity-Launch-Mode"><a href="#六、-Activity-Launch-Mode" class="headerlink" title="六、 Activity Launch Mode"></a>六、 Activity Launch Mode</h2><h3 id="1-Brief-Introduction"><a href="#1-Brief-Introduction" class="headerlink" title="1. Brief Introduction"></a>1. Brief Introduction</h3><p>Activity Stack is a LIFO stack.<br>一个应用程序的优先级是受最高优先级的Activity影响的。Android内存管理使用栈来决定基于Activity的应用程序的优先级,决定某个应用程序是否要终结去释放资源。 </p>
+<h3 id="2-启动模式"><a href="#2-启动模式" class="headerlink" title="2. 启动模式"></a>2. 启动模式</h3><p>参考Android-Tasks-And-Stack。</p>
+</div><div class="tags"><a href="/tags/Acivity/">Acivity</a><a href="/tags/Optimization/">Optimization</a></div><div class="post-nav"><a href="/2015/11/05/android-tasks-and-stack/" class="pre">Android-Tasks-And-Stack</a><a href="/2015/09/15/android-shrink-code-and-resources/" class="next">Android-Shrink-Code-And-Resources</a></div><div data-thread-key="2015/10/04/android-activity/" data-title="Android-Activity" data-url="http://ccsun.github.io/2015/10/04/android-activity/" class="ds-share flat"><div class="ds-share-inline"><ul class="ds-share-icons-16"><li data-toggle="ds-share-icons-more"><a href="javascript:void(0);" class="ds-more">分享到：</a></li><li><a href="javascript:void(0);" data-service="weibo" class="ds-weibo">微博</a></li><li><a href="javascript:void(0);" data-service="qzone" class="ds-qzone">QQ空间</a></li><li><a href="javascript:void(0);" data-service="qqt" class="ds-qqt">腾讯微博</a></li><li><a href="javascript:void(0);" data-service="wechat" class="ds-wechat">微信</a></li></ul><div class="ds-share-icons-more"></div></div></div><div data-thread-key="2015/10/04/android-activity/" data-title="Android-Activity" data-url="http://ccsun.github.io/2015/10/04/android-activity/" data-author-key="1" class="ds-thread"></div></div></div></div><div class="pure-u-1-4"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Acivity/" style="font-size: 15px;">Acivity</a> <a href="/tags/Building/" style="font-size: 15px;">Building</a> <a href="/tags/Signing/" style="font-size: 15px;">Signing</a> <a href="/tags/Gradle/" style="font-size: 15px;">Gradle</a> <a href="/tags/DDMS/" style="font-size: 15px;">DDMS</a> <a href="/tags/Monitor/" style="font-size: 15px;">Monitor</a> <a href="/tags/Fragment/" style="font-size: 15px;">Fragment</a> <a href="/tags/IconSize/" style="font-size: 15px;">IconSize</a> <a href="/tags/Lint/" style="font-size: 15px;">Lint</a> <a href="/tags/Annotations/" style="font-size: 15px;">Annotations</a> <a href="/tags/Optimization/" style="font-size: 15px;">Optimization</a> <a href="/tags/Loaders/" style="font-size: 15px;">Loaders</a> <a href="/tags/Stack/" style="font-size: 15px;">Stack</a> <a href="/tags/项目目录/" style="font-size: 15px;">项目目录</a> <a href="/tags/DeepLink/" style="font-size: 15px;">DeepLink</a> <a href="/tags/AppIndex/" style="font-size: 15px;">AppIndex</a> <a href="/tags/JVM/" style="font-size: 15px;">JVM</a> <a href="/tags/iOS/" style="font-size: 15px;">iOS</a> <a href="/tags/Object-c/" style="font-size: 15px;">Object-c</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Spring/" style="font-size: 15px;">Spring</a> <a href="/tags/XCode/" style="font-size: 15px;">XCode</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/03/30/android-performance-tools/">Android-Performance-Tools</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/24/android-overview-screen/">Android-Overview-Screen</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/27/spring/">Spring</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/object-c-diary/">Object-c Diary</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/xcode-manual/">XCode Manual</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/18/android-ddms-and-monitor/">Android-DDMS-And-AndroidMonitor</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/11/android-displaying-bitmap-efficiently/">Android-Displaying-Bitmap-Efficiently</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/09/java-jvm-memory-management/">JVM-Memory-Management</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/04/android-improving-layout-performance/">Android-Improving-Layout-Performance</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/11/29/android-managing-memory/">Android-Managing-Memory</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">叶枫很疯.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script>var duoshuoQuery = {short_name:'ccSun7758'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-72788993-1','auto');ga('send','pageview');
+</script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?f46a81e8b7f09cf131355bd147357eb9";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+  })();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

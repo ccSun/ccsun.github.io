@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>Spring | 叶枫很疯</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/3.0.3/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/0.6.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.5.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">Spring</h1><a id="logo" href="/.">叶枫很疯</a><p class="description"></p></div><div id="nav-menu"><a href="/." class="current"><i class="fa fa-home"> 首页</i></a><a href="/archives/"><i class="fa fa-archive"> 归档</i></a><a href="/about/"><i class="fa fa-user"> 关于</i></a></div></div><div id="layout" class="pure-g"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">Spring</h1><div class="post-meta">Jan 27, 2016<span> | </span><span class="category"><a href="/categories/Java/">Java</a></span><script src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js" async></script><span id="busuanzi_container_page_pv"> | <span id="busuanzi_value_page_pv"></span><span> Hits</span></span></div><a data-thread-key="2016/01/27/spring/" href="/2016/01/27/spring/#comments" class="ds-thread-count"></a><div class="post-content"><p>Spring整理</p>
+<h2 id="一-基础配置"><a href="#一-基础配置" class="headerlink" title="一. 基础配置"></a>一. 基础配置</h2><ol>
+<li>导入jar包（dist）</li>
+<li>src目录添加beans.xml, schema的添加从doc的reference， spring-framework中可以找到；</li>
+<li><p>创建User对象类；在beans中添加所有的累进行对象实例；</p>
+ <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 相当于User user = new User(); </span></span><br><span class="line">   &lt;bean id=<span class="string">"userDao"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"com.xxx.model.User"</span> scope=<span class="string">"四个值可选"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p> <strong>scope默认singleton， prototype为多例。即fac.getBean时得到的对象是否时单例</strong></p>
+</li>
+<li><p>测试类中使用user对象,通过工厂方法得到的user对象是被Spring管理的</p>
+ <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建Spring工厂</span></span><br><span class="line"><span class="keyword">private</span> BeanFactory fac = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"beans.xml"</span>);</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">()</span></span>&#123;</span><br><span class="line">	User user = fac.getBean(<span class="string">"userDao"</span>, User.<span class="keyword">class</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <strong>xml没有代码提示，在ide配置中修改xml的catalog，增加配置文件xsd；</strong></p>
+</li>
+</ol>
+<h2 id="二-IoC注入"><a href="#二-IoC注入" class="headerlink" title="二. IoC注入"></a>二. IoC注入</h2><p>分层model,dao,service,action,各添加需要的包、类；<br>大项目使用xml配置，中小项目用annotation配置；</p>
+<h3 id="1-基于xml配置"><a href="#1-基于xml配置" class="headerlink" title="1. 基于xml配置"></a>1. 基于xml配置</h3><h4 id="1-手动注入"><a href="#1-手动注入" class="headerlink" title="(1).手动注入"></a>(1).手动注入</h4><ol>
+<li><p>配置所有的类到beans.xml</p>
+ <figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">// 相当于<span class="type">User</span> user = new <span class="type">User</span>();  在<span class="type">User</span>类中有<span class="built_in">set</span>/get方法</span><br><span class="line"> 	&lt;bean id=<span class="string">"user"</span> class=<span class="string">"com.xxx.model.User"</span> scope=<span class="string">"singleton"</span>&gt;</span><br><span class="line"> 	&lt;/bean&gt;</span><br><span class="line"> 	</span><br><span class="line"> 	&lt;bean id=<span class="string">"userDao"</span> class=<span class="string">"com.xxx.dao.UserDao"</span>/&gt;</span><br><span class="line"> 	</span><br><span class="line"> 	&lt;bean id=<span class="string">"userService"</span> class=<span class="string">"com.xxx.service.UserService"</span>&gt;</span><br><span class="line"> 		&lt;property name=<span class="string">"userDaoS"</span> <span class="keyword">ref</span>=<span class="string">"userDao"</span>&gt;&lt;/property&gt;</span><br><span class="line"> 		</span><br><span class="line"> 		// 此处的userDaoS需要在userService中添加对应的setUserDaoS/getUserDaoS方法；</span><br><span class="line"> 		// 需要在service类中添加对应的setUserDaoS(<span class="type">IUserDao</span> userDao)/get方法</span><br><span class="line"> 		// <span class="keyword">ref</span>=<span class="string">"userDao"</span>中的userDao即为bean.xml中配置文件的id：userDao</span><br><span class="line"> 	&lt;/bean&gt;</span><br><span class="line"> 	</span><br><span class="line"> 	&lt;bean id=<span class="string">"userAction"</span> class=<span class="string">"com.xxx.action.UserAction"</span> scope=<span class="string">"prototype"</span>&gt;</span><br><span class="line"> 	</span><br><span class="line"> 		&lt;property name=<span class="string">"userService"</span> <span class="keyword">ref</span>=<span class="string">"userService"</span>&gt;&lt;/property&gt;</span><br><span class="line"> 	</span><br><span class="line"> 	&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>对于Action而言，里面的对象的值会发生改变，需要用多例，比如2个thread添加不同的user，user已经发生了变化了</strong><br><strong>如果没有属性、状态变化的，使用单里即可</strong></p>
+</li>
+<li>在各类中通过工厂方法方式获取注入的类实例；</li>
+</ol>
+<h4 id="2-构造方法注入"><a href="#2-构造方法注入" class="headerlink" title="(2). 构造方法注入"></a>(2). 构造方法注入</h4><ol>
+<li>UserAction添加构造方法，有两个参数；</li>
+<li><p>修改配置文件</p>
+ <figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=<span class="string">"userAction"</span> class=<span class="string">"com.xxx.action.UserAction"</span> scope=<span class="string">"prototype"</span>&gt;</span><br><span class="line">	&lt;constructor-arg <span class="keyword">ref</span>=<span class="string">"userServie1"</span>/&gt;</span><br><span class="line">	&lt;constructor-arg <span class="keyword">ref</span>=<span class="string">"userServie2"</span>/&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h4 id="3-自动注入"><a href="#3-自动注入" class="headerlink" title="(3). 自动注入"></a>(3). 自动注入</h4><ol>
+<li><p>beans.xml配置   </p>
+ <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> &lt;bean id=<span class="string">"userAction"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"com.xxx.action.UserAction"</span> </span><br><span class="line"> 	scope=<span class="string">"prototype"</span>    </span><br><span class="line"> 	autowire=<span class="string">"xx???xxx"</span>&gt;    	</span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>autowire=”byName”,会调用get/set方法；</p>
+</li>
+<li><p>在配置文件root节点beans节点添加 default-autowire=””,则所有配置都将自动注入。</p>
+</li>
+</ol>
+<p><strong>虽然减少手动配置代码，但无法通过beans文件了解所有文件结构，不建议使用。</strong></p>
+<h4 id="4-属性注入"><a href="#4-属性注入" class="headerlink" title="(4). 属性注入"></a>(4). 属性注入</h4><ol>
+<li><p>修改beans.xml</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 相当于User user = new User();  在User类中有<span class="keyword">set</span>/<span class="keyword">get</span>方法    </span><br><span class="line">  	&lt;bean <span class="keyword">id</span>=<span class="string">"user"</span> <span class="keyword">class</span>=<span class="string">"com.xxx.model.User"</span> <span class="keyword">scope</span>=<span class="string">"singleton"</span>&gt;</span><br><span class="line">  		&lt;property <span class="keyword">name</span>=<span class="string">"id"</span> <span class="keyword">value</span>=<span class="string">"1"</span>/&gt;</span><br><span class="line">  		&lt;property <span class="keyword">name</span>=<span class="string">"userName"</span> <span class="keyword">value</span>=<span class="string">"ccSun"</span>/&gt;</span><br><span class="line">  		&lt;property <span class="keyword">name</span>=<span class="string">"listXX"</span>&gt;</span><br><span class="line">  			&lt;<span class="keyword">list</span>&gt;</span><br><span class="line">  			&lt;/<span class="keyword">list</span>&gt;</span><br><span class="line">  		&lt;/property&gt;</span><br><span class="line">  	&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="2-基于Annotation注入（Spring-3-0之后）"><a href="#2-基于Annotation注入（Spring-3-0之后）" class="headerlink" title="2. 基于Annotation注入（Spring 3.0之后）"></a>2. 基于Annotation注入（Spring 3.0之后）</h3><ol>
+<li>beans.xml中beans节点添加context的schema；</li>
+<li><p>修改beans.xml   </p>
+ <figure class="highlight vhdl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">打开spring annotation</span><br><span class="line">&lt;<span class="keyword">context</span>:annotation-config/&gt;</span><br><span class="line">设置从哪些包扫描注解</span><br><span class="line">&lt;<span class="keyword">context</span>:<span class="keyword">component</span>-scan base-<span class="keyword">package</span>=<span class="string">"com.xxx"</span>&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>class文件</p>
+ <figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 相当于&lt;bean id="userDao" class="com.xxx.dao.UserDao"/&gt;</span></span><br><span class="line"><span class="comment">// @Component("userDao") // 公共的创建bean的annotation,比较少用</span></span><br><span class="line"><span class="variable">@Repository</span>(<span class="string">"userDao"</span>) <span class="comment">// 一般用于DAO的注入</span></span><br><span class="line">public class UserDAO implements IUserDao&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// service 中配置，默认通过名称注入</span></span><br><span class="line"><span class="comment">// @Component("userService")</span></span><br><span class="line"><span class="variable">@Service</span>(<span class="string">"userService"</span>) <span class="comment">//使用service特有的注入</span></span><br><span class="line">public class Uservice implements IUserService&#123;</span><br><span class="line">	<span class="variable">@Resource</span></span><br><span class="line">	public void setUserDao(IUserDao userDao)&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// action 中修改scope</span></span><br><span class="line"><span class="variable">@Controller</span>(<span class="string">"userAction"</span>)</span><br><span class="line"><span class="variable">@scope</span>(<span class="string">"prototype"</span>)</span><br><span class="line">public class UserAction&#123;&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="三-AOP代理自实现"><a href="#三-AOP代理自实现" class="headerlink" title="三. AOP代理自实现"></a>三. AOP代理自实现</h2><h3 id="1-静态代理"><a href="#1-静态代理" class="headerlink" title="1. 静态代理"></a>1. 静态代理</h3><p>  假设在userDao的操作中需要加入log输出代码，我们可以写一个ProxyDao，在ProxyDao中写于原userDao相同的方法。方法内添加log输出，调用userDao。把ProxyDao注入到Service中。</p>
+<h3 id="2-动态代理"><a href="#2-动态代理" class="headerlink" title="2. 动态代理"></a>2. 动态代理</h3><ol>
+<li><p>创建代理类  </p>
+ <figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* <span class="number">1</span>. 创建一个类实现<span class="type">InvocationHandler</span>接口</span><br><span class="line">*/</span><br><span class="line">public class <span class="type">LogProxy</span> implements <span class="type">InvocationHandler</span>&#123;</span><br><span class="line"></span><br><span class="line">	// <span class="number">2</span>. 创建一个代理对象</span><br><span class="line">	private <span class="type">Object</span> target;</span><br><span class="line"></span><br><span class="line">	//<span class="number">3</span>. 创建一个方法生成对象，参数需要被代理的对象，返回代理对象</span><br><span class="line">	public <span class="keyword">static</span> <span class="type">Object</span> getInstance(<span class="type">Object</span> o)&#123;</span><br><span class="line">		// <span class="number">3</span>.<span class="number">1</span> 创建<span class="type">LogProxy</span>对象</span><br><span class="line">		<span class="type">LogProxy</span> proxy = new <span class="type">LogProxy</span>();</span><br><span class="line">		// <span class="number">3</span>.<span class="number">2</span> 设置这个被代理对象</span><br><span class="line">		proxy.target = o;</span><br><span class="line">		// <span class="number">3</span>.<span class="number">3</span> 通过<span class="type">Proxy</span>的方法创建代理对象</span><br><span class="line">		// <span class="literal">result</span>是代理，它代理o</span><br><span class="line">		// 第一个参数 被代理对象的classLoader</span><br><span class="line">		// 第二个参数 被代理对象的实现的所有接口</span><br><span class="line">		// 第三个参数 实现<span class="type">InvocationHandler</span>的类</span><br><span class="line">		<span class="type">Object</span> <span class="literal">result</span> = <span class="type">Proxy</span>.newProxyInstance(</span><br><span class="line">			o.getClass.getClassLoader(),</span><br><span class="line">			o.getClass.getInstances(),</span><br><span class="line">			proxy);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">result</span>;</span><br><span class="line">	</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	// 当有了代理对象后，都会调用invoke方法</span><br><span class="line">	@<span class="type">Override</span></span><br><span class="line">	public <span class="type">Object</span> invoke(<span class="type">Object</span> proxy, <span class="type">Method</span> <span class="keyword">method</span>, <span class="type">Object</span>[] args)&#123;</span><br><span class="line"></span><br><span class="line">		// 自己的代码			</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">method</span>.getName().equals(<span class="string">"add"</span>)) // 只在add方法添加代码</span><br><span class="line">			<span class="type">Logger</span>.info(<span class="string">"hhhhalll"</span>);</span><br><span class="line">		// 自己的代码</span><br><span class="line">	</span><br><span class="line">		<span class="type">Object</span> obj = <span class="keyword">method</span>.invoke(target, args);</span><br><span class="line">		</span><br><span class="line">		// 自己的代码	</span><br><span class="line">		// 自己的代码</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">return</span> obj;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>beans.xml注入    </p>
+<pre><code>没有get/set,注入属性要通过factory-method注入。
+</code></pre> <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDynamicDao"</span> <span class="attr">class</span>=<span class="string">"com.xxxx.LogProxy"</span></span><br><span class="line">	<span class="attr">factory-method</span>=<span class="string">"getInstance"</span><span class="string">"&gt;</span><br><span class="line">	</span><br><span class="line">	&lt;constructor-arg ref="</span><span class="string">userDao"</span>/&gt;</span>  // 此处的userDao会找anotation中的Dao</span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Service中注入userDynamicDao</p>
+ <figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Resource</span>(name=<span class="string">"userDynamicDao"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">setUserDao</span><span class="params">(IUserDao userDao)</span></span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.userDao = userDao;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过Annotation来添加invoke代码</p>
+<p> (1) new Annotation文件 </p>
+ <figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="keyword">public</span> @<span class="keyword">interface</span> LogInfo &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="built_in">String</span> value() <span class="keyword">default</span><span class="string">""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> (2) 在需要添加log输出的接口文件的方法上添加</p>
+ <figure class="highlight aspectj"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">	<span class="meta">@LogInfo</span>(<span class="string">"Add a new user"</span>)</span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">addUser</span><span class="params">(User user)</span></span>;</span><br><span class="line">```	</span><br><span class="line">(<span class="number">3</span>) invoke修改</span><br></pre></td></tr></table></figure>
+<pre><code>@Override
+public Object invoke(Object proxy, Method method, Object[] args){
+
+    // 自己的代码                                        if(method.isAnnotationPresent(LogInfo.class)){
+        LogInfo li = method.getAnnotation(LogInfo.class);
+        Logger.info(li.value());
+    }
+    // 自己的代码
+
+    Object obj = method.invoke(target, args);
+
+    // 自己的代码    
+    // 自己的代码
+
+    return obj;
+}
+</code></pre> <figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 4. 基于Annotation实现AOP代理</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1. </span>修改beans的schema；</span><br><span class="line"><span class="code">	root节点beans添加</span></span><br></pre></td></tr></table></figure>
+<pre><code>xmlns:xsi=&quot;xxxxx/XMLSchema-instance&quot;
+xmlns:aop=&quot;http://www.springframework.org/schema/context&quot;
+xsi:schemaLocation=&quot;xxxxxxxxxxx   aop  aop/spring-aop-3.0.xsd&quot;
+</code></pre> <figure class="highlight capnproto"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2</span>. 打开基于<span class="keyword">annotation</span>的aop代理</span><br></pre></td></tr></table></figure>
+<pre><code>&lt;aop:aspectj-autoproxy/&gt;
+</code></pre> <figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">3. </span>创建aop切面</span><br></pre></td></tr></table></figure>
+<pre><code>@Component(&quot;logAspect&quot;) // 注入切面类给spring管理
+@Aspect // 声明这是一个切面类，Spring通过第三方aspectj实现aop切面
+public class LogAspect{
+
+    // 在哪些类里执行
+    // 第一个＊表示任意返回值；add*表示add开头的方法；..表示任意参数
+    @Before(&quot;execution(* com.xxxxx.dao.*.add*(..))&quot;
+                  + &quot;|| execution(* com.xxxxx.dao.*.update*(..))&quot;)
+    public void logStart(JoinPoint jp){
+        syso(&quot;加入日志&quot;);
+        // 得到执行对象
+        syso:    jp.getTarget()    
+        // 得到执行的方法
+        syso:    jp.getSignature().getname()    // 
+    }
+
+    @Before @After 开始、结束执行
+    @After(&quot;execution(xxx)&quot;)
+    public void logEnd(JoinPoint jp){
+    }
+
+    @Around(&quot;execution(xxxxxx)&quot;)
+    public void logAround(ProceedingJoinPoint pjp){
+
+        // coding 执行程序前执行
+
+        pjp.process(); // 执行程序
+
+        // coding 执行完程序后执行
+    }
+}
+</code></pre> <figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">*</span><span class="keyword">*</span><span class="meta">@Aspect依赖jar包：aopalliance.jar</span> aspectjrt.jar aspectjweaver.jar,要先导入<span class="keyword">*</span><span class="keyword">*</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 5. 基于XML实现AOP代理</span></span><br><span class="line"></span><br><span class="line">1. LogAspect修改</span><br></pre></td></tr></table></figure>
+<pre><code>    @Component(&quot;logAspect&quot;) // 注入切面类给spring管理
+public class LogAspect{
+
+    public void logStart(JoinPoint jp){
+        syso(&quot;加入日志&quot;);
+        // 得到执行对象
+        syso:    jp.getTarget()    
+        // 得到执行的方法
+        syso:    jp.getSignature().getname()    // 
+    }
+
+    public void logEnd(JoinPoint jp){
+    }
+
+    public void logAround(ProceedingJoinPoint pjp){
+
+        // coding 执行程序前执行
+
+        pjp.process(); // 执行程序
+
+        // coding 执行完程序后执行
+    }
+}
+</code></pre> <figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2. 修改<span class="selector-tag">beans</span><span class="selector-class">.xml</span></span><br></pre></td></tr></table></figure>
+<pre><code>&lt;aop:config&gt;
+    // 定义切面
+    &lt;aop:aspect id=&quot;myLogAspect&quot; ref=&quot;logAspect&quot;&gt;
+        // 通过execution指定在哪些类加入切入点
+        &lt;aop:pointcut id=&quot;logPointCut&quot; expression=&quot;execution(* xxxx)&quot;/&gt;
+        &lt;aop:before method=&quot;logStart&quot; pointcut-ref=&quot;logPointCut&quot;/&gt;
+    &lt;/aop:apsect&gt;
+&lt;/aop:config&gt;    
+</code></pre><p> ```</p>
+</li>
+</ol>
+</div><div class="tags"><a href="/tags/Java/">Java</a><a href="/tags/Spring/">Spring</a></div><div class="post-nav"><a href="/2016/03/24/android-overview-screen/" class="pre">Android-Overview-Screen</a><a href="/2016/01/26/object-c-diary/" class="next">Object-c Diary</a></div><div data-thread-key="2016/01/27/spring/" data-title="Spring" data-url="http://ccsun.github.io/2016/01/27/spring/" class="ds-share flat"><div class="ds-share-inline"><ul class="ds-share-icons-16"><li data-toggle="ds-share-icons-more"><a href="javascript:void(0);" class="ds-more">分享到：</a></li><li><a href="javascript:void(0);" data-service="weibo" class="ds-weibo">微博</a></li><li><a href="javascript:void(0);" data-service="qzone" class="ds-qzone">QQ空间</a></li><li><a href="javascript:void(0);" data-service="qqt" class="ds-qqt">腾讯微博</a></li><li><a href="javascript:void(0);" data-service="wechat" class="ds-wechat">微信</a></li></ul><div class="ds-share-icons-more"></div></div></div><div data-thread-key="2016/01/27/spring/" data-title="Spring" data-url="http://ccsun.github.io/2016/01/27/spring/" data-author-key="1" class="ds-thread"></div></div></div></div><div class="pure-u-1-4"><div id="sidebar"><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分类</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Java/">Java</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/iOS/">iOS</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 标签</i></div><div class="tagcloud"><a href="/tags/Tools/" style="font-size: 15px;">Tools</a> <a href="/tags/Acivity/" style="font-size: 15px;">Acivity</a> <a href="/tags/Building/" style="font-size: 15px;">Building</a> <a href="/tags/Signing/" style="font-size: 15px;">Signing</a> <a href="/tags/Gradle/" style="font-size: 15px;">Gradle</a> <a href="/tags/DDMS/" style="font-size: 15px;">DDMS</a> <a href="/tags/Monitor/" style="font-size: 15px;">Monitor</a> <a href="/tags/Fragment/" style="font-size: 15px;">Fragment</a> <a href="/tags/IconSize/" style="font-size: 15px;">IconSize</a> <a href="/tags/Lint/" style="font-size: 15px;">Lint</a> <a href="/tags/Annotations/" style="font-size: 15px;">Annotations</a> <a href="/tags/Optimization/" style="font-size: 15px;">Optimization</a> <a href="/tags/Loaders/" style="font-size: 15px;">Loaders</a> <a href="/tags/Stack/" style="font-size: 15px;">Stack</a> <a href="/tags/项目目录/" style="font-size: 15px;">项目目录</a> <a href="/tags/DeepLink/" style="font-size: 15px;">DeepLink</a> <a href="/tags/AppIndex/" style="font-size: 15px;">AppIndex</a> <a href="/tags/JVM/" style="font-size: 15px;">JVM</a> <a href="/tags/iOS/" style="font-size: 15px;">iOS</a> <a href="/tags/Object-c/" style="font-size: 15px;">Object-c</a> <a href="/tags/Java/" style="font-size: 15px;">Java</a> <a href="/tags/Spring/" style="font-size: 15px;">Spring</a> <a href="/tags/XCode/" style="font-size: 15px;">XCode</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最新文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2016/03/30/android-performance-tools/">Android-Performance-Tools</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/24/android-overview-screen/">Android-Overview-Screen</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/27/spring/">Spring</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/object-c-diary/">Object-c Diary</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/26/xcode-manual/">XCode Manual</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/18/android-ddms-and-monitor/">Android-DDMS-And-AndroidMonitor</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/11/android-displaying-bitmap-efficiently/">Android-Displaying-Bitmap-Efficiently</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/09/java-jvm-memory-management/">JVM-Memory-Management</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/12/04/android-improving-layout-performance/">Android-Improving-Layout-Performance</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/11/29/android-managing-memory/">Android-Managing-Memory</a></li></ul></div><div class="widget"><div class="comments-title"><i class="fa fa-comment-o"> 最近评论</i></div><div data-num-items="5" data-show-avatars="0" data-show-time="1" data-show-admin="0" data-excerpt-length="32" data-show-title="1" class="ds-recent-comments"></div></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友情链接</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">© <a href="/." rel="nofollow">叶枫很疯.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a id="rocket" href="#top" class="show"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.pack.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="/css/jquery.fancybox.css?v=0.0.0"><script>var duoshuoQuery = {short_name:'ccSun7758'};
+(function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0]
+        || document.getElementsByTagName('body')[0]).appendChild(ds);
+})();
+</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create','UA-72788993-1','auto');ga('send','pageview');
+</script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?f46a81e8b7f09cf131355bd147357eb9";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+  })();
+</script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
