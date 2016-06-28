@@ -56,29 +56,21 @@
 </li>
 </ol>
 <h2 id="三、-Library-Module"><a href="#三、-Library-Module" class="headerlink" title="三、 Library Module"></a>三、 Library Module</h2><h3 id="1-Convert-an-app-module-to-a-library-module"><a href="#1-Convert-an-app-module-to-a-library-module" class="headerlink" title="1. Convert an app module to a library module"></a>1. Convert an app module to a library module</h3><p>Open the <strong><em>build.gradle</em></strong> modify  </p>
-<pre><code>apply plugin: &apos;com.android.application&apos;    
-</code></pre><p>to   </p>
-<pre><code>apply plugin: &apos;com.android.library&apos;    
-</code></pre><h3 id="2-Add-library-module"><a href="#2-Add-library-module" class="headerlink" title="2. Add library module"></a>2. Add library module</h3><p>Add to <strong><em>settings.gradle</em></strong>    </p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apply <span class="string">plugin:</span> <span class="string">'com.android.application'</span></span><br></pre></td></tr></table></figure>
+<p>to   </p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">	apply plugin: 'com.android.library'   </span><br><span class="line">``` </span><br><span class="line"></span><br><span class="line"><span class="comment">### 2. Add library module</span></span><br><span class="line">    </span><br><span class="line">Add to <span class="keyword">*</span><span class="keyword">*</span><span class="keyword">*</span>settings.gradle<span class="keyword">*</span><span class="keyword">*</span><span class="keyword">*</span></span><br></pre></td></tr></table></figure>
 <pre><code>include &apos;:app&apos;, &apos;:my-library-module&apos;    
-</code></pre><p>Add to <strong><em>build.gradle</em></strong>    </p>
-<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">	<span class="keyword">compile</span> <span class="keyword">project</span>(<span class="string">":my-library-module"</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="3-Consideration"><a href="#3-Consideration" class="headerlink" title="3. Consideration"></a>3. Consideration</h3><p>When you build an application that depends on a library module, the SDK tools <strong><em>compile the library into a temporary JAR file</em></strong> and use it in the main module, <strong><em>then uses the result to generate the .apk</em></strong></p>
-<p><strong><em>You cannot:</em></strong>    </p>
-<ol>
-<li>cannot compile it directly to its own .apk</li>
-<li>cannot export the library module to a self-contained JAR file</li>
-<li>cannot include raw assets; 不能包含raw assets；</li>
-</ol>
-<p><strong><em>You can:</em></strong></p>
-<ol>
-<li>can add Dependencies添加lib，module和本地jar lib</li>
-<li>can include a JAR into a lib module; manually edit the dependent application modules’s build path and add a path to the JAR file.</li>
-<li><p>can include an external jar lib into a lib module;</p>
-<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;uses-library   	</span><br><span class="line"> 		android:name=<span class="string">"string"</span>   </span><br><span class="line"> 		android:required=[<span class="string">"true"</span> <span class="string">| "</span>false<span class="string">"] </span></span><br><span class="line"> 		/&gt;</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p><strong><em>Resource conflicts</em></strong>    </p>
+</code></pre><figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">    </span><br><span class="line">Add to <span class="keyword">*</span><span class="keyword">*</span><span class="keyword">*</span>build.gradle<span class="keyword">*</span><span class="keyword">*</span><span class="keyword">*</span></span><br></pre></td></tr></table></figure>
+<pre><code>dependencies {
+    compile project(&quot;:my-library-module&quot;)
+}
+</code></pre><figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">### 3. Consideration</span></span><br><span class="line"></span><br><span class="line">When you build an application that depends on a library <span class="class"><span class="keyword">module</span>, <span class="title">the</span> <span class="title">SDK</span> <span class="title">tools</span> ***<span class="title">compile</span> <span class="title">the</span> <span class="title">library</span> <span class="title">into</span> <span class="title">a</span> <span class="title">temporary</span> <span class="title">JAR</span> <span class="title">file</span>*** <span class="title">and</span> <span class="title">use</span> <span class="title">it</span> <span class="title">in</span> <span class="title">the</span> <span class="title">main</span> <span class="title">module</span>, ***<span class="title">then</span> <span class="title">uses</span> <span class="title">the</span> <span class="title">result</span> <span class="title">to</span> <span class="title">generate</span> <span class="title">the</span> .<span class="title">apk</span>***</span></span><br><span class="line">    </span><br><span class="line">***You <span class="symbol">cannot:</span>***    </span><br><span class="line"></span><br><span class="line"><span class="number">1</span>.  cannot compile it directly to its own .apk</span><br><span class="line"><span class="number">2</span>.  cannot export the library <span class="class"><span class="keyword">module</span> <span class="title">to</span> <span class="title">a</span> <span class="title">self</span>-<span class="title">contained</span> <span class="title">JAR</span> <span class="title">file</span></span></span><br><span class="line"><span class="number">3</span>.  cannot <span class="keyword">include</span> raw assets; 不能包含raw assets；</span><br><span class="line"></span><br><span class="line">***You <span class="symbol">can:</span>***</span><br><span class="line">    </span><br><span class="line"><span class="number">1</span>.  can add Dependencies添加<span class="class"><span class="keyword">lib</span>，<span class="title">module</span>和本地<span class="title">jar</span> <span class="title">lib</span></span></span><br><span class="line"><span class="number">2</span>.  can <span class="keyword">include</span> a JAR into a <span class="class"><span class="keyword">lib</span> <span class="title">module</span>;</span> manually edit the dependent application modules<span class="string">'s build path and add a path to the JAR file.</span><br><span class="line">3.  can include an external jar lib into a lib module;</span></span><br></pre></td></tr></table></figure>
+<pre><code>    &lt;uses-library       
+          android:name=&quot;string&quot;   
+          android:required=[&quot;true&quot; | &quot;false&quot;] 
+          /&gt;
+```
+</code></pre><p><strong><em>Resource conflicts</em></strong>    </p>
 <ol>
 <li>如果一个资源文件在app和library module里同时出现，app里的优先级更高。Library module里的资源文件并不会编译进apk里</li>
 <li>如果app依赖多个lib，<strong><em>dependencies</em></strong>里第一个优先级最高。</li>
